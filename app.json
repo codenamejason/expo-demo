@@ -1,44 +1,38 @@
 {
   "expo": {
-    "name": "demo-1",
-    "slug": "demo-1",
+    "name": "@dnd",
+    "slug": "debate-and-donate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "debateanddonate",
     "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#cdabf8"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "xyz.sippp.ios",
-      "expo": {
-        "infoPlist": {
-          "NSCameraUsageDescription": "This app uses the camera to take photos."
-        }
-      }
+      "bundleIdentifier": "xyz.debateanddonate.app",
+      "supportsTablet": true
     },
     "android": {
+      "package": "xyz.debateanddonate.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "bundleIdentifier": "xyz.sippp.android"
+        "backgroundColor": "#cdabf8"
+      }
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
-      "expo-router",
-      "expo-secure-store"
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "privyAppId": "cly0llp2p0l143yxzoqz5ibiy"
     }
   }
 }

@@ -8,6 +8,8 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import "@ethersproject/shims";
+import "../shim.js";
 
 // Import the PrivyProvider
 import { PrivyProvider } from "@privy-io/expo";
@@ -34,7 +36,7 @@ export default function RootLayout() {
   }
 
   return (
-    <PrivyProvider appId="clx6q1bqj0crjlcx5i15umm5k">
+    <PrivyProvider appId="cly0llp2p0l143yxzoqz5ibiy">
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

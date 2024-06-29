@@ -1,132 +1,91 @@
-import { View, Text, TextInput, Button } from "react-native";
-
-import {
-  useLoginWithSMS,
-  useLoginWithEmail,
-  useLoginWithFarcaster,
-  useLoginWithSiwe,
-  hasError,
-  usePrivy,
-} from "@privy-io/expo";
-import { useState } from "react";
+import { Text, TextInput } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useLoginWithSMS, useLoginWithEmail, usePrivy } from "@privy-io/expo";
+import { useEffect, useState } from "react";
+import Constants from "expo-constants";
+import { loginStyles } from "@/app/styles";
+import { Button } from "./Button";
+import { ThemedView } from "./ThemedView";
+import { ThemedText } from "./ThemedText";
 
 export function LoginScreen() {
+  const [email, setEmail] = useState(Constants.expoConfig?.extra?.email || "");
   const [code, setCode] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
 
-  const [address, setAddress] = useState("");
-  const [message, setMessage] = useState("");
-  const { state, sendCode: sendSMSCode, loginWithCode } = useLoginWithSMS();
-  const { sendCode: sendEmailCode } = useLoginWithEmail();
-  const { loginWithFarcaster, state: farcasterState } = useLoginWithFarcaster({
-    onSuccess: console.log,
-    onError: console.error,
-  });
-  const { generateSiweMessage, loginWithSiwe } = useLoginWithSiwe();
-  const { isReady, user } = usePrivy();
+  const { user } = usePrivy();
+  const emailFlow = useLoginWithEmail();
+  // const oauth = useOAuthFlow();
 
-  const handleGenerate = async () => {
-    const message = await generateSiweMessage({
-      from: {
-        domain: "sippp.xyz",
-        uri: "https://sippp.xyz",
-      },
-      wallet: {
-        // sepolia chainId with CAIP-2 prefix
-        chainId: `eip155:11155111`,
-        address,
-      },
-    });
+  // Side effects which react to login state changes
+  useEffect(() => {
+    // Report error
+    if (emailFlow.state.status === "error") {
+      console.error(emailFlow.state.error);
+    } // else if (oauth.state.status === "error") {
+    //   console.error(oauth.state.error);
+    // }
+  }, [emailFlow.state.status]); //, oauth.state.status]);
 
-    setMessage(message);
-  };
-
+  if (user) {
+    return (
+      <ThemedView style={loginStyles.container}>
+        <ThemedText>Looks like you are already logged in</ThemedText>;
+      </ThemedView>
+    );
+  }
   // {Platform.select({ ios: "cmd + d", android: "cmd + m" })}
 
   return (
-    <View>
-      <View>
-        <TextInput onChangeText={setPhone} />
-        <Button
-          title="Text Code" // Use the title prop instead of children
-          disabled={state.status === "sending-code"}
-          onPress={() => sendSMSCode({ phone })}
-        />
+    <ThemedView style={loginStyles.container}>
+      <ThemedText>Login</ThemedText>
+      <ThemedText style={{ color: "rgba(0,0,0,0.4)", marginVertical: 10 }}>
+        (OTP state:{" "}
+        <ThemedText style={{ color: "blue" }}>{emailFlow.state.status}</ThemedText>)
+      </ThemedText>
+      <StatusBar style="auto" />
 
-        {state.status === "sending-code" && (
-          //  Shows only while the code is sending
-          <Text>Sending Code...</Text>
-        )}
-      </View>
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        style={loginStyles.input}
+        inputMode="email"
+      />
+      <Button
+        loading={emailFlow.state.status === "sending-code"}
+        onPress={() => emailFlow.sendCode({ email })}
+      >
+        Send Code
+      </Button>
 
-      <View>
-        <TextInput onChangeText={setCode} />
-        <Button
-          // Keeps button disabled until the code has been sent
-          title="Login"
-          disabled={state.status !== "awaiting-code-input"}
-          onPress={() => loginWithCode({ code })}
-        />
-      </View>
+      <TextInput
+        value={code}
+        onChangeText={setCode}
+        placeholder="Code"
+        style={loginStyles.input}
+        inputMode="numeric"
+      />
+      <Button
+        loading={emailFlow.state.status === "submitting-code"}
+        disabled={emailFlow.state.status !== "awaiting-code-input"}
+        onPress={() => emailFlow.loginWithCode({ code })}
+      >
+        Login
+      </Button>
 
-      <View>
-        <Text>Login</Text>
-
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          inputMode="email"
-        />
-
-        <Button
-          title="Send Code To Email"
-          onPress={() => sendEmailCode({ email })}
-        />
-      </View>
-
-      <View>
-        <Button
-          title="Login with Farcaster"
-          onPress={() => {
-            loginWithFarcaster({ relyingParty: "https://example.app" });
-          }}
-        />
-      </View>
-
-      <View>
-        <TextInput
-          value={address}
-          onChangeText={setAddress}
-          placeholder="0x..."
-        />
-
-        <Button title="SIWE" onPress={handleGenerate} />
-
-        {Boolean(message) && <Text>{message}</Text>}
-      </View>
-
-      {state.status === "submitting-code" && (
-        // Shows only while the login is being attempted
-        <Text>Logging in...</Text>
-      )}
-
-      {(state.status === "error" || farcasterState.status === "error") && (
-        <>
-          <Text style={{ color: "red" }}>There was an error</Text>
-          <Text style={{ color: "lightred" }}>{state.error.message}</Text>
-        </>
-      )}
-
-      {/* {hasError(state) && (
-        // The `hasError` util is also provided as a convenience
-        // (for typescript users, this provides the same type narrowing as above)
-        <>
-          <Text style={{ color: "red" }}>There was an error</Text>
-          <Text style={{ color: "lightred" }}>{state.error.message}</Text>
-        </>
-      )} */}
-    </View>
+      {/* <ThemedView style={{display: "flex", flexDirection: "row", gap: 5, margin: 10}}>
+        {(["github", "google", "discord", "apple"] as const).map((provider) => (
+          <ThemedView key={provider}>
+            <Button
+              disabled={oauth.state.status === "loading"}
+              loading={oauth.state.status === "loading"}
+              onPress={() => oauth.start({provider})}
+            >
+              {`Login with ${provider}`}
+            </Button>
+          </ThemedView>
+        ))}
+      </ThemedView> */}
+    </ThemedView>
   );
 }
